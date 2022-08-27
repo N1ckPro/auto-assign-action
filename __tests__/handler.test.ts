@@ -840,7 +840,13 @@ describe('handlePullRequest', () => {
       filterLabels: { include: ['test_label'] },
     } as any
 
-    context.payload.pull_request.labels = [{ name: 'some_label' }]
+    client.pulls = {
+      get: jest.fn().mockImplementation(async () => {
+        data: {
+          labels: [{ name: 'test_label' }]
+        }
+      }),
+    } as any
 
     await handler.handlePullRequest(client, context, config)
 
@@ -857,10 +863,13 @@ describe('handlePullRequest', () => {
       filterLabels: { include: ['test_label'], exclude: ['wip'] },
     } as any
 
-    context.payload.pull_request.labels = [
-      { name: 'test_label' },
-      { name: 'wip' },
-    ]
+    client.pulls = {
+      get: jest.fn().mockImplementation(async () => ({
+        data: {
+          labels: [{ name: 'test_label' }, { name: 'wip' }],
+        },
+      })),
+    } as any
 
     await handler.handlePullRequest(client, context, config)
 
@@ -884,6 +893,11 @@ describe('handlePullRequest', () => {
 
     client.pulls = {
       createReviewRequest: jest.fn().mockImplementation(async () => {}),
+      get: jest.fn().mockImplementation(async () => ({
+        data: {
+          labels: [{ name: 'some_label' }],
+        },
+      })),
     } as any
 
     const addAssigneesSpy = jest.spyOn(client.issues, 'addAssignees')

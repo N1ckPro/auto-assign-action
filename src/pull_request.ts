@@ -33,11 +33,18 @@ export class PullRequest {
     core.debug(JSON.stringify(result))
   }
 
-  hasAnyLabel(labels: string[]): boolean {
-    if (!this.context.payload.pull_request) {
-      return false
-    }
-    const { labels: pullRequestLabels = [] } = this.context.payload.pull_request
+  async hasAnyLabel(labels: string[]): Promise<boolean> {
+    const { number: pull_number, owner, repo } = this.context.issue
+
+    const pullRequest = await this.client.pulls.get({
+      owner,
+      pull_number,
+      repo,
+    })
+
+    if (!pullRequest) return false
+
+    const { labels: pullRequestLabels = [] } = pullRequest.data
     return pullRequestLabels.some(label => labels.includes(label.name))
   }
 }
